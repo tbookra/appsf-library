@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import styles from './home.module.scss'
+import { EditModal } from "../edit-modal";
 import type { RootState, AppDispatch } from "../../store";
 import { setUsers } from "../../store/actions/userActions";
+import { UserCard } from "../user-card";
 import axios from "axios";
+
+
 
 export interface User {
   email: string;
@@ -37,36 +42,40 @@ export interface User {
 }
 
 export const Home = () => {
-    const dispatch:AppDispatch = useDispatch();
-//   const [users, setAllUsers] = useState([]);
-
-const users = useSelector((state:any) => state.users); 
+  const dispatch: AppDispatch = useDispatch();
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  const users = useSelector((state: any) => state.users);
 
   useEffect(() => {
     const fetchUsers = async () => {
       const usersData = await axios.get("https://randomuser.me/api/", {
         params: { results: 10 },
       });
-      dispatch(setUsers(usersData.data.results.map((user: User) => ({
-        name: user.name,
-        email: user.email,
-        location: user.location,
-        id: user.id,
-        image: user.picture,
-      }))))
-    //   setAllUsers(
-    //     usersData.data.results.map((user: User) => ({
-    //       name: user.name,
-    //       email: user.email,
-    //       location: user.location,
-    //       id: user.id,
-    //       image: user.picture,
-    //     }))
-    //   );
+      dispatch(
+        setUsers(
+          usersData.data.results.map((user: User) => ({
+            name: user.name,
+            email: user.email,
+            location: user.location,
+            id: user.id.value ? user.id : {value :`${Math.random()}`},
+            picture: user.picture,
+          }))
+        )
+      );
     };
     fetchUsers();
   }, [dispatch]);
   console.log("users", users);
 
-  return <div>home</div>;
+  return (
+    <div className={styles.mainContainer} >
+      {users.length && users.map((user: User) => <UserCard user={user} handleOpen={handleOpen} />)}
+      <div>
+      {open && <EditModal handleClose={handleClose} />}
+
+    </div>
+    </div>
+  );
 };
